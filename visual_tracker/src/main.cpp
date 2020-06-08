@@ -28,7 +28,6 @@
  *
  */
 
-
 //ROS
 #include <ros/ros.h>
 #include <people_msgs/SegmentedImage.h>
@@ -41,13 +40,10 @@
 //VISUAL TRACKER
 #include <tracker/Tracker.h>
 
-<<<<<<< HEAD
 #include <utils/pathc.h>
 
 #include <time.h>
 
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 //TRACKER
 tracker::Tracker tr;
 //SUBSCRIBER
@@ -57,22 +53,13 @@ ros::Publisher tracks;
 //VARIABLES
 std::vector<tracker::detection_struct> rects;
 cv::Mat frame, resize;
-<<<<<<< HEAD
 
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 cv_bridge::CvImageConstPtr rgbImage;
 cv::Rect r;
 double _imageScalingFactor;
 
-<<<<<<< HEAD
-
-
 std::vector<pathC> paths;
 
-
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
 {
     const people_msgs::SegmentedImage &detections = *_detections;
@@ -81,21 +68,21 @@ void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
     {
         rgbImage = cv_bridge::toCvCopy(detections.image, sensor_msgs::image_encodings::BGR8);
     }
-    catch(cv_bridge::Exception &ex)
+    catch (cv_bridge::Exception &ex)
     {
         ROS_ERROR("cv_bridge RGB exception: %s", ex.what());
         return;
     }
 
     frame = rgbImage->image.clone();
-    cv::resize(frame, resize, cv::Size(frame.cols/_imageScalingFactor, frame.rows/_imageScalingFactor));
+    cv::resize(frame, resize, cv::Size(frame.cols / _imageScalingFactor, frame.rows / _imageScalingFactor));
 
     rects.clear();
-    for(const auto &det : detections.clusters.clusters)
+    for (const auto &det : detections.clusters.clusters)
     {
         tracker::detection_struct d;
-        d.bbox = cv::Rect(det.boundingBox.topLeft.x/_imageScalingFactor, det.boundingBox.topLeft.y/_imageScalingFactor,
-                          det.boundingBox.width/_imageScalingFactor, det.boundingBox.height/_imageScalingFactor);
+        d.bbox = cv::Rect(det.boundingBox.topLeft.x / _imageScalingFactor, det.boundingBox.topLeft.y / _imageScalingFactor,
+                          det.boundingBox.width / _imageScalingFactor, det.boundingBox.height / _imageScalingFactor);
         d.point3D = cv::Point3d(det.center.x, det.center.y, det.center.z);
         rects.push_back(d);
     }
@@ -106,17 +93,13 @@ void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
     tr.generateMessage(t, _imageScalingFactor);
     tracks.publish(t);
 
-<<<<<<< HEAD
     cv::Mat top_view(500, 400, CV_8UC4);
-    top_view.setTo(cv::Scalar(255,255,255));
+    top_view.setTo(cv::Scalar(255, 255, 255));
     tr.generateTopview(top_view, paths);
     cv::imshow("TopView", top_view);
 
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
     cv::imshow("Tracker", frame);
     cv::waitKey(1);
-
 }
 
 int main(int argc, char **argv)

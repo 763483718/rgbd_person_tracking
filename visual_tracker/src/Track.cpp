@@ -28,11 +28,9 @@
  *
  */
 
-
 #include <tracker/Track.h>
 
 using namespace tracker;
-
 
 Track::Track(const cv::Point &_pos, const int &_w, const int &_h, const cv::Scalar &_color)
     : color_(_color)
@@ -56,4 +54,3 @@ const cv::Mat Track::getPosition()
     lastKalmanDetection_ = kalman_->predict();
     return lastKalmanDetection_;
 }
-

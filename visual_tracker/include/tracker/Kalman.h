@@ -28,7 +28,6 @@
  *
  */
 
-
 #ifndef KALMAN_H
 #define KALMAN_H
 
@@ -39,7 +38,7 @@ namespace MyKalmanFilter
     class KalmanFilter
     {
     public:
-        KalmanFilter() {;}
+        KalmanFilter() { ; }
         KalmanFilter(const int &_x, const int &_y, const int &_w, const int &_h, const float &dt);
         inline cv::KalmanFilter kf()
         {
@@ -47,7 +46,8 @@ namespace MyKalmanFilter
         }
 
         cv::Mat predict();
-        cv::Mat correct(const int &_x, const int &_y, const int& _w, const int& _h);
+        cv::Mat correct(const int &_x, const int &_y, const int &_w, const int &_h);
+
     private:
         //the kalman filter
         cv::KalmanFilter KF;
@@ -56,6 +56,6 @@ namespace MyKalmanFilter
         cv::Mat_<float> state;
     };
 
-}
+} // namespace MyKalmanFilter
 
 #endif //KALMAN_H

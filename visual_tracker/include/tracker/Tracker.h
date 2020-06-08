@@ -28,7 +28,6 @@
  *
  */
 
-
 #include <iostream>
 #include <memory>
 #include <opencv2/opencv.hpp>
@@ -43,16 +42,14 @@
 #include <mutex>
 #include <nonfree/features2d.hpp>
 #include <people_msgs/Tracks.h>
-<<<<<<< HEAD
+
 #include <utils/pathc.h>
 #include <time.h>
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 
 namespace tracker
 {
-    #define BINS 16		  	// number of histogram bins for every dimension
-    #define CHANNELS 3		// number of histogram dimensions (equal to the number of image channels)
+#define BINS 16    // number of histogram bins for every dimension
+#define CHANNELS 3 // number of histogram dimensions (equal to the number of image channels)
 
     struct detection_struct
     {
@@ -64,59 +61,65 @@ namespace tracker
     typedef adaboost::ColorOrbFeature_<BINS, CHANNELS> _ColorOrbFeature;
     //typedef adaboost::KalmanWeakClassifier<_ColorFeature> _ColorWeakClassifier;
     typedef adaboost::KalmanWeakClassifier<_ColorOrbFeature> _ColorWeakClassifier;
-    enum colorspace{RGB, HSV, LUV, LAB};
+    enum colorspace
+    {
+        RGB,
+        HSV,
+        LUV,
+        LAB
+    };
 
     class Tracker
     {
-        public:
-            /**
+    public:
+        /**
              * @brief Classifier
              * @param _classifiers number of weak classifiers considered at each iteration
              * @param _selectors number of weak classifier that compose the strong classifier
              * @param _numFeatureToDraw number of chosen features whose mean value is drawn for visualization
              */
-            Tracker(const int &_classifiers = 250, const int &_selectors = 100, const int &_numFeatureToDraw = 200,
-                    const float &_assocThres = 0.5, const colorspace &_color = colorspace::LAB, const int& _accDetection = 5,
-                    const int& _lossDetection = 5);
-            void track(const std::vector<detection_struct> & _detections,
-                       const cv::Mat &_image);
-            void visualize(cv::Mat &_image, const double& scaling_factor);
-            void generateMessage(people_msgs::Tracks& _msg, const double& scaling_factor);
-<<<<<<< HEAD
-            void generateTopview(cv::Mat &_image, std::vector<pathC> &_paths);
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
-            virtual ~Tracker();
+        Tracker(const int &_classifiers = 250, const int &_selectors = 100, const int &_numFeatureToDraw = 200,
+                const float &_assocThres = 0.5, const colorspace &_color = colorspace::LAB, const int &_accDetection = 5,
+                const int &_lossDetection = 5);
+        void track(const std::vector<detection_struct> &_detections,
+                   const cv::Mat &_image);
+        void visualize(cv::Mat &_image, const double &scaling_factor);
+        void generateMessage(people_msgs::Tracks &_msg, const double &scaling_factor);
 
-        private:
-            int classifiers_;
-            int selectors_;
-            int numFeaturesToDraw_;
-            int idCounter_;
-            int accDetection_;
-            int lossDetection_;
-            bool initialize_;
-            int cZeroDet_;
-            float assocThres_;
-            colorspace color_;
-            cv::Mat image_;
-            cv::Mat keyPointImage_;
-            cv::Mat keyPointMask_;
-            cv::Mat descriptors_;//in caso cancellare
-            std::vector<cv::KeyPoint> keypoints_;//in caso cancellare
-            cv::RNG rng;
-            std::vector<detection_struct> detections_;
-            std::vector<std::shared_ptr<adaboost::StrongClassifier> > strongClassifiers_;
-            std::vector<std::shared_ptr<Track> > tracks_;
-            std::vector<cv::Mat> negMasks_;
-            std::vector<cv::Mat> histograms_;
-            std::vector<cv::Mat> featureHistograms_;
-            std::map<int, std::pair<int, float> > oldTracks; //ID_CLASSIFIER, PAIR<ID_DETECTION, CONFIDENCE>
-            std::map<int, std::set<int> > occlusionMap; //ID_TRACK, VECTOR OF OCCLUSIONS
-            std::vector<int> newTracks;
-            std::vector<int> classifiersToDelete;
-        private:
-            /**
+        void generateTopview(cv::Mat &_image, std::vector<pathC> &_paths);
+
+        virtual ~Tracker();
+
+    private:
+        int classifiers_;
+        int selectors_;
+        int numFeaturesToDraw_;
+        int idCounter_;
+        int accDetection_;
+        int lossDetection_;
+        bool initialize_;
+        int cZeroDet_;
+        float assocThres_;
+        colorspace color_;
+        cv::Mat image_;
+        cv::Mat keyPointImage_;
+        cv::Mat keyPointMask_;
+        cv::Mat descriptors_;                 //in caso cancellare
+        std::vector<cv::KeyPoint> keypoints_; //in caso cancellare
+        cv::RNG rng;
+        std::vector<detection_struct> detections_;
+        std::vector<std::shared_ptr<adaboost::StrongClassifier>> strongClassifiers_;
+        std::vector<std::shared_ptr<Track>> tracks_;
+        std::vector<cv::Mat> negMasks_;
+        std::vector<cv::Mat> histograms_;
+        std::vector<cv::Mat> featureHistograms_;
+        std::map<int, std::pair<int, float>> oldTracks; //ID_CLASSIFIER, PAIR<ID_DETECTION, CONFIDENCE>
+        std::map<int, std::set<int>> occlusionMap;      //ID_TRACK, VECTOR OF OCCLUSIONS
+        std::vector<int> newTracks;
+        std::vector<int> classifiersToDelete;
+
+    private:
+        /**
              * @brief calcColorHistogram
              * @param image
              * @param blobMask
@@ -125,9 +128,9 @@ namespace tracker
              * @param colorspace
              * @param histogram
              */
-            static void calcColorHistogram(const cv::Mat& _image, const cv::Mat& _blobMask, const int& _bins, const int& _channels,
-                                    cv::Mat& _histogram);
-            /**
+        static void calcColorHistogram(const cv::Mat &_image, const cv::Mat &_blobMask, const int &_bins, const int &_channels,
+                                       cv::Mat &_histogram);
+        /**
              * @brief createNegativeHistograms
              * @param _image
              * @param _mask
@@ -137,22 +140,22 @@ namespace tracker
              * @param _detections
              * @param det
              */
-            void createNegativeHistograms(const cv::Mat& _image, const cv::Mat& _mask, const int& _n, const int& _bins, std::vector<cv::Mat>& _negative_histograms,
-                                          std::vector<cv::Mat>& _negative_feature_histograms, const std::vector<detection_struct>& _detections, const int &det);
+        void createNegativeHistograms(const cv::Mat &_image, const cv::Mat &_mask, const int &_n, const int &_bins, std::vector<cv::Mat> &_negative_histograms,
+                                      std::vector<cv::Mat> &_negative_feature_histograms, const std::vector<detection_struct> &_detections, const int &det);
 
-            static void calcFeatures(const cv::Rect& _detection, cv::Mat& _histrogram, const cv::Mat& _descriptors,
-                                     const cv::Mat& _keyPointImage, const cv::Mat& _keyPointMask);
+        static void calcFeatures(const cv::Rect &_detection, cv::Mat &_histrogram, const cv::Mat &_descriptors,
+                                 const cv::Mat &_keyPointImage, const cv::Mat &_keyPointMask);
 
-            void computeDetectionHistograms();
-            void train(const int &_start, const bool& _init);
-            void deleteTracks();
-            void associate();
-            void update();
-            void createNewClassifiers();
-            void init();
-            void checkOcclusions();
-            bool overlapRoi(const int& idx_1, const int& idx_2, float& perc);
-            bool overlapRoi(const cv::Rect& r1, const cv::Rect& _r2, float& perc);
+        void computeDetectionHistograms();
+        void train(const int &_start, const bool &_init);
+        void deleteTracks();
+        void associate();
+        void update();
+        void createNewClassifiers();
+        void init();
+        void checkOcclusions();
+        bool overlapRoi(const int &idx_1, const int &idx_2, float &perc);
+        bool overlapRoi(const cv::Rect &r1, const cv::Rect &_r2, float &perc);
     };
 
-}
+} // namespace tracker

@@ -28,7 +28,6 @@
  *
  */
 
-
 #include "tracker/Tracker.h"
 #include <ctime>
 #include <iterator>
@@ -38,7 +37,7 @@
 using namespace tracker;
 
 Tracker::Tracker(const int &_classifiers, const int &_selectors, const int &_numFeatureToDraw, const float &_assocThres, const colorspace &_color,
-                 const int& _accDetection, const int& _lossDetection)
+                 const int &_accDetection, const int &_lossDetection)
     : classifiers_(_classifiers), selectors_(_selectors), numFeaturesToDraw_(_numFeatureToDraw), assocThres_(_assocThres), color_(_color),
       accDetection_(_accDetection), lossDetection_(_lossDetection)
 {
@@ -57,10 +56,10 @@ void Tracker::track(const std::vector<detection_struct> &_detections, const cv::
     featureHistograms_.clear();
     keypoints_.clear();
 
-    if(_detections.size() == 0)
+    if (_detections.size() == 0)
     {
         cZeroDet_++;
-        if(cZeroDet_ == 5)
+        if (cZeroDet_ == 5)
         {
             tracks_.clear();
             strongClassifiers_.clear();
@@ -83,13 +82,14 @@ void Tracker::track(const std::vector<detection_struct> &_detections, const cv::
     keyPointMask_ = cv::Mat(_image.size(), CV_8UC1, cv::Scalar(0));
 
     int i = 0;
-    for(const auto &key : keypoints_)
+    for (const auto &key : keypoints_)
     {
         keyPointImage_.at<float>(key.pt) = i;
         keyPointMask_.at<uchar>(key.pt) = uchar(255);
         ++i;
     }
-    switch (color_) {
+    switch (color_)
+    {
     case HSV:
         cv::cvtColor(_image, image_, CV_BGR2HSV);
         break;
@@ -102,23 +102,23 @@ void Tracker::track(const std::vector<detection_struct> &_detections, const cv::
         image_ = _image.clone();
         break;
     }
-    if(initialize_)
+    if (initialize_)
     {
-        /*1*/init(); //Initialize the classifier
-        /*2*/computeDetectionHistograms(); //Compute the histrograms and the masks
-        /*3*/train(0, true); //Train the classifier
+        /*1*/ init();                       //Initialize the classifier
+        /*2*/ computeDetectionHistograms(); //Compute the histrograms and the masks
+        /*3*/ train(0, true);               //Train the classifier
         initialize_ = false;
     }
     else
     {
-        /*1*/computeDetectionHistograms(); //Compute the histrograms and the masks
-        /*2*/associate(); //Associate the detections with the classifiers
-        /*4*/checkOcclusions();//Check occluded tracks
-        /*3*/update(); //Update old classifiers
-        /*5*/deleteTracks(); //Delete unused tracks
-        /*6*/createNewClassifiers(); //Create the classifiers for the new tracks
+        /*1*/ computeDetectionHistograms(); //Compute the histrograms and the masks
+        /*2*/ associate();                  //Associate the detections with the classifiers
+        /*4*/ checkOcclusions();            //Check occluded tracks
+        /*3*/ update();                     //Update old classifiers
+        /*5*/ deleteTracks();               //Delete unused tracks
+        /*6*/ createNewClassifiers();       //Create the classifiers for the new tracks
         int start = strongClassifiers_.size() - newTracks.size();
-        /*7*/train(start, false); //Train the new classifiers
+        /*7*/ train(start, false); //Train the new classifiers
     }
 
     counter++;
@@ -129,18 +129,17 @@ void Tracker::calcColorHistogram(const cv::Mat &_image, const cv::Mat &_blobMask
     const int histSize[] = {_bins, _bins, _bins};
     static const float range[] = {0, 255};
     static const int ch[] = {0, 1, 2};
-    static const float* histRanges[] = {range, range, range};
+    static const float *histRanges[] = {range, range, range};
 
-    cv::Mat imageToHist;    // image used to compute the color histogram
-    _image.copyTo(imageToHist, _blobMask);	// the image is filtered with a mask
+    cv::Mat imageToHist;                   // image used to compute the color histogram
+    _image.copyTo(imageToHist, _blobMask); // the image is filtered with a mask
 
-    cv::calcHist(&imageToHist, 1, ch, _blobMask, _histogram, _channels, histSize, histRanges, true, false);   // color histogram computation
-    _histogram /= cv::countNonZero(_blobMask);   // histogram normalization
+    cv::calcHist(&imageToHist, 1, ch, _blobMask, _histogram, _channels, histSize, histRanges, true, false); // color histogram computation
+    _histogram /= cv::countNonZero(_blobMask);                                                              // histogram normalization
 }
 
-
 void Tracker::createNegativeHistograms(const cv::Mat &_image, const cv::Mat &_mask, const int &_n, const int &_bins, std::vector<cv::Mat> &_negative_histograms,
-                                        std::vector<cv::Mat>& _negative_feature_histograms, const std::vector<detection_struct> &_detections, const int &_det)
+                                       std::vector<cv::Mat> &_negative_feature_histograms, const std::vector<detection_struct> &_detections, const int &_det)
 {
     // creates histograms of random image patches to be used as negative examples
     cv::Mat histogram;
@@ -157,12 +156,12 @@ void Tracker::createNegativeHistograms(const cv::Mat &_image, const cv::Mat &_ma
     cv::Rect neg_rect;
     std::thread hist, feat;
 
-    for(int i = 0; i < _n; ++i)
+    for (int i = 0; i < _n; ++i)
     {
 
         is_contained = true;
 
-        while(is_contained)
+        while (is_contained)
         {
             x_min = rand() % (_image.cols - min_width - 1);
             y_min = rand() % (_image.rows - min_height - 1);
@@ -171,15 +170,13 @@ void Tracker::createNegativeHistograms(const cv::Mat &_image, const cv::Mat &_ma
             is_contained = cv::countNonZero(_mask(cv::Rect(x_min, y_min, width, height))) == 0;
         }
 
-
         neg_rect = cv::Rect(x_min, y_min, width, height);
 
         neg_image = _image(neg_rect);
         neg_mask = _mask(neg_rect);
 
-
         feat = std::thread(std::bind(calcFeatures, neg_rect, std::ref(featureHistogram), descriptors_, keyPointImage_, keyPointMask_));
-        hist = std::thread(std::bind(calcColorHistogram, neg_image, neg_mask, _bins, _image.channels(),  std::ref(histogram)));
+        hist = std::thread(std::bind(calcColorHistogram, neg_image, neg_mask, _bins, _image.channels(), std::ref(histogram)));
         hist.join();
         feat.join();
 
@@ -187,9 +184,9 @@ void Tracker::createNegativeHistograms(const cv::Mat &_image, const cv::Mat &_ma
         _negative_feature_histograms.push_back(featureHistogram.clone());
     }
 
-    for(int i = 0; i < _detections.size(); ++i)
+    for (int i = 0; i < _detections.size(); ++i)
     {
-        if(i != _det)
+        if (i != _det)
         {
             _negative_histograms.push_back(histograms_[i]);
             _negative_feature_histograms.push_back(featureHistograms_[i]);
@@ -197,12 +194,12 @@ void Tracker::createNegativeHistograms(const cv::Mat &_image, const cv::Mat &_ma
     }
 }
 
-void Tracker::calcFeatures(const cv::Rect& _detection, cv::Mat& _histrogram, const cv::Mat& _descriptors,
-                           const cv::Mat& _keyPointImage, const cv::Mat& _keyPointMask)
+void Tracker::calcFeatures(const cv::Rect &_detection, cv::Mat &_histrogram, const cv::Mat &_descriptors,
+                           const cv::Mat &_keyPointImage, const cv::Mat &_keyPointMask)
 {
     const int histSize[] = {64};
     static const float range[] = {0, 255};
-    static const float* histRange[] = {range};
+    static const float *histRange[] = {range};
     static const int ch[1] = {0};
 
     cv::Mat mask = _keyPointMask(_detection);
@@ -215,7 +212,7 @@ void Tracker::calcFeatures(const cv::Rect& _detection, cv::Mat& _histrogram, con
 
     float idx;
 
-    for(uint j = 0; j < nonZeroCoordinates.total(); ++j)
+    for (uint j = 0; j < nonZeroCoordinates.total(); ++j)
     {
         idx = feat.at<float>(nonZeroCoordinates.at<cv::Point>(j));
         _descriptors.row(idx).copyTo(descriptor.row(j));
@@ -225,7 +222,6 @@ void Tracker::calcFeatures(const cv::Rect& _detection, cv::Mat& _histrogram, con
     cv::calcHist(&descriptor, 1, ch, blobMask, _histrogram, 1, histSize, histRange, true, false);
     _histrogram /= int(descriptor.cols);
 }
-
 
 void Tracker::computeDetectionHistograms()
 {
@@ -238,25 +234,25 @@ void Tracker::computeDetectionHistograms()
     cv::Rect detection;
     std::thread hist, feat;
 
-    for(uint i = 0; i < detections_.size(); ++i)
+    for (uint i = 0; i < detections_.size(); ++i)
     {
         detection = detections_.at(i).bbox;
-        if(detection.x + detection.width > image_.cols)
+        if (detection.x + detection.width > image_.cols)
         {
-            detection.width = image_.cols - detection.x  - 1;
+            detection.width = image_.cols - detection.x - 1;
         }
 
-        if(detection.x < 0)
+        if (detection.x < 0)
         {
             detection.x = 0;
         }
 
-        if(detection.y + detection.height > image_.rows)
+        if (detection.y + detection.height > image_.rows)
         {
             detection.height = image_.rows - detection.y - 1;
         }
 
-        if(detection.y < 0)
+        if (detection.y < 0)
         {
             detection.y = 0;
         }
@@ -265,7 +261,7 @@ void Tracker::computeDetectionHistograms()
         blobMask = cv::Mat(target_image.rows, target_image.cols, CV_8UC1, cv::Scalar(255));
         negativeMask = cv::Mat(image_.rows, image_.cols, CV_8UC1, cv::Scalar(255));
         negativeMask(detection) = cv::Scalar(0);
-        hist = std::thread(std::bind(calcColorHistogram, target_image, blobMask, BINS, CHANNELS,  std::ref(histogram)));
+        hist = std::thread(std::bind(calcColorHistogram, target_image, blobMask, BINS, CHANNELS, std::ref(histogram)));
         feat = std::thread(std::bind(calcFeatures, detection, std::ref(featureHist), descriptors_, keyPointImage_, keyPointMask_));
         hist.join();
         feat.join();
@@ -275,13 +271,13 @@ void Tracker::computeDetectionHistograms()
     }
 }
 
-void Tracker::train(const int &_start, const bool& _init)
+void Tracker::train(const int &_start, const bool &_init)
 {
     std::vector<cv::Mat> hists;
     std::vector<cv::Mat> featHists;
     std::vector<cv::Mat> negMasks;
 
-    if(_init)
+    if (_init)
     {
         //ROS_ERROR("QUI");
         hists = histograms_;
@@ -292,7 +288,7 @@ void Tracker::train(const int &_start, const bool& _init)
     {
         int newTrack;
         //#pragma omp parallel for private(newTrack)
-        for(uint i = 0; i < newTracks.size(); ++i)
+        for (uint i = 0; i < newTracks.size(); ++i)
         {
             newTrack = newTracks.at(i);
             hists.push_back(histograms_.at(newTrack));
@@ -302,13 +298,11 @@ void Tracker::train(const int &_start, const bool& _init)
     }
 
     std::thread positiveSamples, tracks;
-    positiveSamples = std::thread([this](const int& _start, const std::vector<cv::Mat>& hists, const std::vector<cv::Mat>& featHists, const std::vector<cv::Mat>& negMasks)
-    {
+    positiveSamples = std::thread([this](const int &_start, const std::vector<cv::Mat> &hists, const std::vector<cv::Mat> &featHists, const std::vector<cv::Mat> &negMasks) {
         int counter = _start;
         int selection;
 
-
-        for(uint i = 0; i < hists.size(); ++i)
+        for (uint i = 0; i < hists.size(); ++i)
         {
             selection = (newTracks.size() == 0) ? i : newTracks.at(i);
             strongClassifiers_[counter]->update(cv::Point(0, 0), 1, std::make_pair(hists.at(i), featHists.at(i)), numFeaturesToDraw_);
@@ -319,7 +313,7 @@ void Tracker::train(const int &_start, const bool& _init)
             createNegativeHistograms(image_, negMasks[i], 10, BINS, wrongHistograms, wrongFeatureHistrograms, detections_, selection);
 
             // Update with negative examples:
-            for(int k = 0; k < wrongHistograms.size(); k++)
+            for (int k = 0; k < wrongHistograms.size(); k++)
             {
                 strongClassifiers_[counter]->update(cv::Point(0, 0), -1, std::make_pair(wrongHistograms[k], wrongFeatureHistrograms[k]), numFeaturesToDraw_);
                 strongClassifiers_[counter]->replaceWorstWeakClassifier<_ColorWeakClassifier>();
@@ -327,52 +321,51 @@ void Tracker::train(const int &_start, const bool& _init)
 
             ++counter;
         }
+    },
+                                  _start, hists, featHists, negMasks);
 
-    }, _start, hists, featHists, negMasks);
+    tracks = std::thread([this](const uint &_n, const std::vector<cv::Mat> &hists, const std::vector<cv::Mat> &featHists) {
+        cv::Scalar color;
+        cv::Rect detection;
+        for (uint i = 0; i < _n; ++i)
+        {
+            detection = detections_.at((newTracks.size() == 0) ? i : newTracks.at(i)).bbox;
+            color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+            std::shared_ptr<Track> tr(new Track(detection.tl(), detection.width, detection.height, color));
 
-    tracks = std::thread([this](const uint& _n, const std::vector<cv::Mat>& hists, const std::vector<cv::Mat>& featHists)
-    {
-           cv::Scalar color;
-           cv::Rect detection;
-           for(uint i = 0; i < _n; ++i)
-           {
-               detection = detections_.at( (newTracks.size() == 0) ? i : newTracks.at(i)  ).bbox;
-               color = cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-               std::shared_ptr<Track> tr(new Track(detection.tl(), detection.width, detection.height, color));
+            tr->setWidth(detection.width);
 
-               tr->setWidth( detection.width );
+            tr->setHeight(detection.height);
 
-               tr->setHeight( detection.height );
-
-               tr->setHist(hists.at(i).clone());
-               tr->setFeatHist(featHists.at(i).clone());
-               tracks_.push_back(tr);
-           }
-    }, hists.size(), hists, featHists);
+            tr->setHist(hists.at(i).clone());
+            tr->setFeatHist(featHists.at(i).clone());
+            tracks_.push_back(tr);
+        }
+    },
+                         hists.size(), hists, featHists);
     positiveSamples.join();
     tracks.join();
 
-
-    for(const auto& track : tracks_)
+    for (const auto &track : tracks_)
     {
         track->getPosition();
     }
 
-    for (int i =  tracks_.size() - 1; i > 0;  --i)
+    for (int i = tracks_.size() - 1; i > 0; --i)
     {
         cv::Mat p = tracks_[i]->lastPosition();
         cv::Rect r1(p.at<float>(0), p.at<float>(1), p.at<float>(4), p.at<float>(5));
         float perc_1, perc_2;
-        for (auto j = i-1; j >= 0; j--)
+        for (auto j = i - 1; j >= 0; j--)
         {
             cv::Mat p2 = tracks_[j]->lastPosition();
             cv::Rect r2(p2.at<float>(0), p2.at<float>(1), p2.at<float>(4), p2.at<float>(5));
             if (overlapRoi(r1, r2, perc_1))
             {
                 overlapRoi(r2, r1, perc_2);
-                if(perc_1 > 0.98 || perc_2 > 0.98)
+                if (perc_1 > 0.98 || perc_2 > 0.98)
                 {
-                    if(tracks_[j]->numDetections() < tracks_[i]->numDetections())
+                    if (tracks_[j]->numDetections() < tracks_[i]->numDetections())
                     {
                         tracks_[j] = tracks_[i];
                         strongClassifiers_[j] = strongClassifiers_[i];
@@ -384,13 +377,11 @@ void Tracker::train(const int &_start, const bool& _init)
             }
         }
     }
-
-
 }
 
 void Tracker::deleteTracks()
 {
-    for(const auto &cls : classifiersToDelete)
+    for (const auto &cls : classifiersToDelete)
     {
         tracks_.erase(tracks_.begin() + cls);
         strongClassifiers_.erase(strongClassifiers_.begin() + cls);
@@ -409,27 +400,27 @@ void Tracker::associate()
     cv::Mat classifierCosts(cv::Size(M, N), CV_64FC1);
     cv::Mat distanceCosts(cv::Size(M, N), CV_64FC1);
 
-    std::vector<std::vector<float> > predictionMap;
+    std::vector<std::vector<float>> predictionMap;
     float prediction;
     std::vector<float> predictions;
 
     double dist;
     cv::Point2d diff;
     //COST COMPUTATION
-    for(uint i=0; i < tracks_.size(); ++i)
+    for (uint i = 0; i < tracks_.size(); ++i)
     {
-        for(uint j=0; j < detections_.size(); ++j)
+        for (uint j = 0; j < detections_.size(); ++j)
         {
-            diff = tracks_[i]->lastDetection() - cv::Point(detections_[j].bbox.x + detections_[j].bbox.width/2, detections_[j].bbox.y + detections_[j].bbox.height/2);
-            dist = sqrtf(diff.x*diff.x + diff.y*diff.y);
+            diff = tracks_[i]->lastDetection() - cv::Point(detections_[j].bbox.x + detections_[j].bbox.width / 2, detections_[j].bbox.y + detections_[j].bbox.height / 2);
+            dist = sqrtf(diff.x * diff.x + diff.y * diff.y);
             distanceCosts.at<double>(i, j) = dist;
         }
     }
 
-    for(uint k = 0; k < histograms_.size(); ++k)
+    for (uint k = 0; k < histograms_.size(); ++k)
     {
         predictions.clear();
-        for(int j = 0; j < strongClassifiers_.size(); ++j)
+        for (int j = 0; j < strongClassifiers_.size(); ++j)
         {
             prediction = strongClassifiers_[j]->predict(cv::Point(0, 0), std::make_pair(histograms_[k], featureHistograms_[k]));
             classifierCosts.at<double>(j, k) = strongClassifiers_[j]->predict(cv::Point(0, 0), std::make_pair(histograms_[k], featureHistograms_[k]));
@@ -440,28 +431,28 @@ void Tracker::associate()
 
     cv::Mat x(distanceCosts.size(), distanceCosts.type(), cv::Scalar(-1.));
 
-    for(uint i = 0; i < distanceCosts.rows; ++i)
+    for (uint i = 0; i < distanceCosts.rows; ++i)
     {
-        for(uint j = 0; j < distanceCosts.cols; ++j)
+        for (uint j = 0; j < distanceCosts.cols; ++j)
         {
-            if(distanceCosts.at<double>(i, j) < 20.)
+            if (distanceCosts.at<double>(i, j) < 20.)
             {
                 x.at<double>(i, j) = 0.;
             }
         }
     }
 
-    for(uint i = 0; i < x.rows; ++i)
+    for (uint i = 0; i < x.rows; ++i)
     {
-        for(uint j = 0; j < x.cols; ++j)
+        for (uint j = 0; j < x.cols; ++j)
         {
-            if(x.at<double>(i, j) == 0.)
+            if (x.at<double>(i, j) == 0.)
             {
-                for(uint k = i + 1; k < x.rows; ++k)
+                for (uint k = i + 1; k < x.rows; ++k)
                 {
-                    if(x.at<double>(k, j) == 0.)
+                    if (x.at<double>(k, j) == 0.)
                     {
-                        if(tracks_[i]->numDetections() > tracks_[k]->numDetections())
+                        if (tracks_[i]->numDetections() > tracks_[k]->numDetections())
                         {
                             x.at<double>(k, j) = -1.;
                         }
@@ -480,16 +471,16 @@ void Tracker::associate()
     std::vector<bool> usedClassifiers(tracks_.size(), false);
     int i = 0;
 
-    for(const auto &pr : predictionMap)
+    for (const auto &pr : predictionMap)
     {
         const auto &m = std::max_element(pr.begin(), pr.end());
-        if(*m > 0.)
+        if (*m > 0.)
         {
             uint idx = (int)(m - pr.begin());
-            if(oldTracks.find(idx) != oldTracks.end())
+            if (oldTracks.find(idx) != oldTracks.end())
             {
                 std::pair<int, float> elem = oldTracks[idx];
-                if(elem.second < *m)
+                if (elem.second < *m)
                 {
                     elem = std::make_pair(i, *m);
                 }
@@ -510,23 +501,23 @@ void Tracker::associate()
     }
 
 #if 1
-    if(counter != 1)
+    if (counter != 1)
     {
-        for(uint i = 0; i < x.rows; ++i)
+        for (uint i = 0; i < x.rows; ++i)
         {
-            for(uint j = 0; j < x.cols; ++j)
+            for (uint j = 0; j < x.cols; ++j)
             {
-                if(x.at<double>(i, j) == 0.)
+                if (x.at<double>(i, j) == 0.)
                 {
                     const auto el = std::find(newTracks.begin(), newTracks.end(), j);
-                    if(el != newTracks.end())
+                    if (el != newTracks.end())
                     {
                         newTracks.erase(el);
                     }
-                    if(oldTracks.find(i) != oldTracks.end())
+                    if (oldTracks.find(i) != oldTracks.end())
                     {
                         std::pair<int, float> elem = oldTracks[i];
-                        if(elem.second < classifierCosts.at<double>(i, j))
+                        if (elem.second < classifierCosts.at<double>(i, j))
                         {
                             elem = std::make_pair(j, classifierCosts.at<double>(i, j));
                         }
@@ -537,7 +528,6 @@ void Tracker::associate()
                     }
                     usedClassifiers.at(i) = true;
                 }
-
             }
         }
     }
@@ -546,11 +536,11 @@ void Tracker::associate()
     //SELECT WHICH CLASSIFIERS HAS TO BE DELETED
     i = 0;
 
-    for(const auto &usedClassifier : usedClassifiers)
+    for (const auto &usedClassifier : usedClassifiers)
     {
-        if(!usedClassifier)
+        if (!usedClassifier)
         {
-            if(tracks_[i]->lossDetections() == lossDetection_)
+            if (tracks_[i]->lossDetections() == lossDetection_)
             {
                 classifiersToDelete.push_back(i);
             }
@@ -566,7 +556,7 @@ void Tracker::associate()
 void Tracker::update()
 {
 #if 0
-    #pragma omp parallel for num_threads(omp_get_num_procs() * omp_get_num_threads())
+#pragma omp parallel for num_threads(omp_get_num_procs() * omp_get_num_threads())
     for(const auto &track : oldTracks)
     {
         ///Update Positive sample
@@ -575,7 +565,7 @@ void Tracker::update()
 
         ///Update Negative sample
         // Create negative examples (randomly chosen from the rest of the image + the other detections):
-        #pragma omp for nowait
+#pragma omp for nowait
         {
             std::vector<cv::Mat> wrongHistograms;
             std::vector<cv::Mat> wrongFeatureHistrograms;
@@ -589,7 +579,7 @@ void Tracker::update()
             }
         }
 
-        #pragma omp for nowait
+#pragma omp for nowait
         {
             tracks_[track.first]->getPosition();
             tracks_[track.first]->update(detections_.at(track.second.first).tl(), detections_.at(track.second.first).width, detections_.at(track.second.first).height);
@@ -608,10 +598,9 @@ void Tracker::update()
 #else
     std::thread tracks, positiveSamples;
 
-    positiveSamples = std::thread([this]()
-    {
+    positiveSamples = std::thread([this]() {
         auto track = oldTracks.begin();
-        for(uint i = 0; i < oldTracks.size(); ++i)
+        for (uint i = 0; i < oldTracks.size(); ++i)
         {
             ///Update Positive sample
             strongClassifiers_[track->first]->update(cv::Point(0, 0), 1, std::make_pair(histograms_.at(track->second.first), featureHistograms_.at(track->second.first)), numFeaturesToDraw_);
@@ -623,19 +612,17 @@ void Tracker::update()
             std::vector<cv::Mat> wrongFeatureHistrograms;
             createNegativeHistograms(image_, negMasks_[track->second.first], 10, BINS, wrongHistograms, wrongFeatureHistrograms, detections_, track->second.first);
             // Update with negative examples:
-            for(int k = 0; k < wrongHistograms.size(); k++)
+            for (int k = 0; k < wrongHistograms.size(); k++)
             {
-                strongClassifiers_[track->first]->update(cv::Point(0, 0), -1,std::make_pair(wrongHistograms[k], wrongFeatureHistrograms[k]), numFeaturesToDraw_);
+                strongClassifiers_[track->first]->update(cv::Point(0, 0), -1, std::make_pair(wrongHistograms[k], wrongFeatureHistrograms[k]), numFeaturesToDraw_);
                 strongClassifiers_[track->first]->replaceWorstWeakClassifier<_ColorWeakClassifier>();
             }
             ++track;
         }
     });
 
-
-    tracks = std::thread([this]()
-    {
-        for(const auto &track : oldTracks)
+    tracks = std::thread([this]() {
+        for (const auto &track : oldTracks)
         {
             tracks_[track.first]->getPosition();
             tracks_[track.first]->update(detections_.at(track.second.first).bbox.tl(), detections_.at(track.second.first).bbox.width, detections_.at(track.second.first).bbox.height);
@@ -646,7 +633,7 @@ void Tracker::update()
             tracks_[track.first]->setHist(histograms_.at(track.second.first));
             tracks_[track.first]->setFeatHist(featureHistograms_.at(track.second.first));
             tracks_[track.first]->set3DPoint(detections_.at(track.second.first).point3D);
-            if(tracks_[track.first]->numDetections() >= accDetection_ && tracks_[track.first]->getId() == -1)
+            if (tracks_[track.first]->numDetections() >= accDetection_ && tracks_[track.first]->getId() == -1)
             {
                 tracks_[track.first]->setId(idCounter_++);
             }
@@ -661,10 +648,10 @@ void Tracker::update()
 
 void Tracker::createNewClassifiers()
 {
-    for(int i = 0; i < newTracks.size(); ++i)
+    for (int i = 0; i < newTracks.size(); ++i)
     {
         std::shared_ptr<adaboost::StrongClassifier> classifier(new adaboost::StrongClassifier(classifiers_, selectors_));
-        for(int j = 0; j < classifiers_; j++)
+        for (int j = 0; j < classifiers_; j++)
             classifier->createWeakClassifier<_ColorWeakClassifier>();
         strongClassifiers_.push_back(classifier);
     }
@@ -673,10 +660,10 @@ void Tracker::createNewClassifiers()
 void Tracker::init()
 {
     strongClassifiers_.resize(detections_.size());
-    for(int i = 0; i < detections_.size(); ++i)
+    for (int i = 0; i < detections_.size(); ++i)
     {
         std::shared_ptr<adaboost::StrongClassifier> classifier(new adaboost::StrongClassifier(classifiers_, selectors_));
-        for(int j = 0; j < classifiers_; j++)
+        for (int j = 0; j < classifiers_; j++)
             classifier->createWeakClassifier<_ColorWeakClassifier>();
         strongClassifiers_[i] = classifier;
     }
@@ -685,21 +672,20 @@ void Tracker::init()
 void Tracker::checkOcclusions()
 {
 
-
     float percOcc;
     float percOcc2;
 
     auto track = oldTracks.begin();
 
-    for(uint i = 0; i < oldTracks.size(); ++i)
+    for (uint i = 0; i < oldTracks.size(); ++i)
     {
-        for(const auto& oTrack : oldTracks)
+        for (const auto &oTrack : oldTracks)
         {
-            if(track->second.first != oTrack.second.first)
+            if (track->second.first != oTrack.second.first)
             {
-                if(overlapRoi(track->second.first, oTrack.second.first, percOcc))
+                if (overlapRoi(track->second.first, oTrack.second.first, percOcc))
                 {
-                    if(percOcc >= 0.4)
+                    if (percOcc >= 0.4)
                     {
                         histograms_[track->second.first] = tracks_[track->first]->hist().clone();
                         histograms_[oTrack.second.first] = tracks_[oTrack.first]->hist().clone();
@@ -713,7 +699,7 @@ void Tracker::checkOcclusions()
     }
 }
 
-bool Tracker::overlapRoi(const int& idx_1, const int& idx_2, float& perc)
+bool Tracker::overlapRoi(const int &idx_1, const int &idx_2, float &perc)
 {
     cv::Rect rect_1 = detections_[idx_1].bbox;
     cv::Rect rect_2 = detections_[idx_2].bbox;
@@ -726,7 +712,7 @@ bool Tracker::overlapRoi(const int& idx_1, const int& idx_2, float& perc)
     {
         w = x_br - x_tl;
         h = y_br - y_tl;
-        perc = (w*h) / float(rect_1.area());
+        perc = (w * h) / float(rect_1.area());
         return true;
     }
     perc = 0;
@@ -744,20 +730,20 @@ bool Tracker::overlapRoi(const cv::Rect &r1, const cv::Rect &_r2, float &perc)
     {
         w = x_br - x_tl;
         h = y_br - y_tl;
-        perc = (w*h) / float(r1.area());
+        perc = (w * h) / float(r1.area());
         return true;
     }
     perc = 0;
     return false;
 }
 
-void Tracker::visualize(cv::Mat &_image, const double& scaling_factor)
+void Tracker::visualize(cv::Mat &_image, const double &scaling_factor)
 {
     std::stringstream prediction_ss;
     cv::Mat p;
-    for(const auto &track : tracks_)
+    for (const auto &track : tracks_)
     {
-        if(track->numDetections() >= accDetection_ && !track->hide())
+        if (track->numDetections() >= accDetection_ && !track->hide())
         {
             prediction_ss.str("");
             prediction_ss << track->getId();
@@ -769,15 +755,15 @@ void Tracker::visualize(cv::Mat &_image, const double& scaling_factor)
     }
 }
 
-void Tracker::generateMessage(people_msgs::Tracks &_msg, const double& scaling_factor)
+void Tracker::generateMessage(people_msgs::Tracks &_msg, const double &scaling_factor)
 {
     cv::Mat p;
     people_msgs::Track t;
-    for(const auto &track : tracks_)
+    for (const auto &track : tracks_)
     {
-        if(track->numDetections() >= accDetection_ && !track->hide())
+        if (track->numDetections() >= accDetection_ && !track->hide())
         {
-            const cv::Point3d& point3D = track->get3DPoint();
+            const cv::Point3d &point3D = track->get3DPoint();
             p = track->lastPosition() * scaling_factor;
             cv::Rect r = cv::Rect(p.at<float>(0), p.at<float>(1), p.at<float>(4), p.at<float>(5));
             t.id = track->getId();
@@ -787,81 +773,72 @@ void Tracker::generateMessage(people_msgs::Tracks &_msg, const double& scaling_f
             t.point2D.x = r.x + r.width >> 1;
             t.point2D.y = r.y + r.height;
             _msg.tracks.push_back(t);
-<<<<<<< HEAD
+
             // ROS_INFO("x:%f,\ty:%f,\tz:%f",point3D.x,point3D.y,point3D.z);
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
         }
     }
 }
 
-<<<<<<< HEAD
 void Tracker::generateTopview(cv::Mat &_image, std::vector<pathC> &_paths)
 {
     int id;
     bool exist = false;
-    for(const auto &track : tracks_)
+    for (const auto &track : tracks_)
     {
-        if(track->numDetections() >= accDetection_ && !track->hide())
+        if (track->numDetections() >= accDetection_ && !track->hide())
         {
 
-            const cv::Point3d& point3D = track->get3DPoint();
-            double x = 200 + point3D.x*40;
-            double y = 500 - point3D.z*100;
+            const cv::Point3d &point3D = track->get3DPoint();
+            double x = 200 + point3D.x * 40;
+            double y = 500 - point3D.z * 100;
             ROS_INFO("x:%f,\ty:%f", x, y);
 
             id = track->getId();
             // ROS_INFO("id:%d", id);
-            for(auto &p : _paths)
+            for (auto &p : _paths)
             {
-                if(p.id == id)
+                if (p.id == id)
                 {
                     p.Xs.push_back(x);
                     p.Ys.push_back(y);
                     p.Clocks.push_back(clock());
                     exist = true;
 
-                    if(p.Xs.size()>2)
+                    if (p.Xs.size() > 2)
                         cv::line(_image, cv::Point(x, y), p.getPoint(), track->getColor(), 2);
 
-                    for (int i = 0; i < p.Xs.size();i++)
+                    for (int i = 0; i < p.Xs.size(); i++)
                     {
-                        cv::circle(_image, cv::Point(p.Xs[i],p.Ys[i]), 8, track->getColor(), -1);
+                        cv::circle(_image, cv::Point(p.Xs[i], p.Ys[i]), 8, track->getColor(), -1);
                     }
                     // cv::line(_image, cv::Point(p.predictX(10), 10), cv::Point(p.predictX(400), 400), cv::Scalar(0, 0, 0), 2);
                 }
             }
-            if(!exist)
+            if (!exist)
             {
                 // ROS_INFO("into !exist\n\n");
-                if(_paths.size()==5)
+                if (_paths.size() == 5)
                 {
                     // ROS_INFO("into size==5\n\n");
                     _paths.at(id % 5).Xs.clear();
                     _paths.at(id % 5).Ys.clear();
                     _paths.at(id % 5).Clocks.clear();
-                }else
+                }
+                else
                 {
                     _paths.push_back(pathC(-1));
                 }
                 // ROS_INFO("into !!!!\n\n");
-                _paths.at(id%5).id=id;
-                _paths.at(id%5).Xs.push_back(x);
-                _paths.at(id%5).Ys.push_back(y);
-                _paths.at(id%5).Clocks.push_back(clock());
+                _paths.at(id % 5).id = id;
+                _paths.at(id % 5).Xs.push_back(x);
+                _paths.at(id % 5).Ys.push_back(y);
+                _paths.at(id % 5).Clocks.push_back(clock());
             }
             cv::circle(_image, cv::Point(x, y), 0.2 * 100, track->getColor(), -1);
-
-            
-
         }
     }
 }
 
-
-
-=======
->>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 Tracker::~Tracker()
 {
 }
