@@ -43,6 +43,11 @@
 #include <mutex>
 #include <nonfree/features2d.hpp>
 #include <people_msgs/Tracks.h>
+<<<<<<< HEAD
+#include <utils/pathc.h>
+#include <time.h>
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 
 namespace tracker
 {
@@ -77,6 +82,10 @@ namespace tracker
                        const cv::Mat &_image);
             void visualize(cv::Mat &_image, const double& scaling_factor);
             void generateMessage(people_msgs::Tracks& _msg, const double& scaling_factor);
+<<<<<<< HEAD
+            void generateTopview(cv::Mat &_image, std::vector<pathC> &_paths);
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
             virtual ~Tracker();
 
         private:

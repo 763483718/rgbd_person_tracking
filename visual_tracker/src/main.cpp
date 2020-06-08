@@ -41,6 +41,13 @@
 //VISUAL TRACKER
 #include <tracker/Tracker.h>
 
+<<<<<<< HEAD
+#include <utils/pathc.h>
+
+#include <time.h>
+
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 //TRACKER
 tracker::Tracker tr;
 //SUBSCRIBER
@@ -50,10 +57,22 @@ ros::Publisher tracks;
 //VARIABLES
 std::vector<tracker::detection_struct> rects;
 cv::Mat frame, resize;
+<<<<<<< HEAD
+
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 cv_bridge::CvImageConstPtr rgbImage;
 cv::Rect r;
 double _imageScalingFactor;
 
+<<<<<<< HEAD
+
+
+std::vector<pathC> paths;
+
+
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
 {
     const people_msgs::SegmentedImage &detections = *_detections;
@@ -87,6 +106,14 @@ void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
     tr.generateMessage(t, _imageScalingFactor);
     tracks.publish(t);
 
+<<<<<<< HEAD
+    cv::Mat top_view(500, 400, CV_8UC4);
+    top_view.setTo(cv::Scalar(255,255,255));
+    tr.generateTopview(top_view, paths);
+    cv::imshow("TopView", top_view);
+
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
     cv::imshow("Tracker", frame);
     cv::waitKey(1);
 

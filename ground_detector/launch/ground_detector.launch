@@ -1,5 +1,9 @@
 <launch>
+<<<<<<< HEAD
+		<arg name="prefix" value="/camera" />
+=======
 		<arg name="prefix" value="/top_camera" />
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 		<node name="ground_detector" pkg="ground_detector" type="ground_detector_node" output="screen">
 			<param name="_theta" value="12"/> <!-- xtion tilt angle -->
 			<param name="_ty" value="1.5"/> <!-- xtion y traslation -->

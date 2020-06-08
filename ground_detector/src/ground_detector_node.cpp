@@ -230,9 +230,15 @@ int main(int argc, char** argv)
     nh.param("min_point_subcluster", _min_points_subcluster, int(200)); //min number of points to made a cluster
     nh.param("max_point_subcluster", _max_points_subcluster, int(10000)); //min number of points to made a cluster
     nh.param("debug", _debug, false);
+<<<<<<< HEAD
+    nh.param("depth_topic", _depth_topic, std::string("/camera/depth/image_raw"));
+    nh.param("rgb_topic", _rgb_topic, std::string("/camera/rgb/image_raw"));
+    nh.param("camera_info_topic", _camera_info_topic, std::string("/camera/depth/camera_info"));
+=======
     nh.param("depth_topic", _depth_topic, std::string("/top_camera/depth/image_raw"));
     nh.param("rgb_topic", _rgb_topic, std::string("/top_camera/rgb/image_raw"));
     nh.param("camera_info_topic", _camera_info_topic, std::string("/top_camera/depth/camera_info"));
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 
     print_paramenters();
 

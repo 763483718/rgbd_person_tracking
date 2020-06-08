@@ -787,10 +787,81 @@ void Tracker::generateMessage(people_msgs::Tracks &_msg, const double& scaling_f
             t.point2D.x = r.x + r.width >> 1;
             t.point2D.y = r.y + r.height;
             _msg.tracks.push_back(t);
+<<<<<<< HEAD
+            // ROS_INFO("x:%f,\ty:%f,\tz:%f",point3D.x,point3D.y,point3D.z);
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
         }
     }
 }
 
+<<<<<<< HEAD
+void Tracker::generateTopview(cv::Mat &_image, std::vector<pathC> &_paths)
+{
+    int id;
+    bool exist = false;
+    for(const auto &track : tracks_)
+    {
+        if(track->numDetections() >= accDetection_ && !track->hide())
+        {
+
+            const cv::Point3d& point3D = track->get3DPoint();
+            double x = 200 + point3D.x*40;
+            double y = 500 - point3D.z*100;
+            ROS_INFO("x:%f,\ty:%f", x, y);
+
+            id = track->getId();
+            // ROS_INFO("id:%d", id);
+            for(auto &p : _paths)
+            {
+                if(p.id == id)
+                {
+                    p.Xs.push_back(x);
+                    p.Ys.push_back(y);
+                    p.Clocks.push_back(clock());
+                    exist = true;
+
+                    if(p.Xs.size()>2)
+                        cv::line(_image, cv::Point(x, y), p.getPoint(), track->getColor(), 2);
+
+                    for (int i = 0; i < p.Xs.size();i++)
+                    {
+                        cv::circle(_image, cv::Point(p.Xs[i],p.Ys[i]), 8, track->getColor(), -1);
+                    }
+                    // cv::line(_image, cv::Point(p.predictX(10), 10), cv::Point(p.predictX(400), 400), cv::Scalar(0, 0, 0), 2);
+                }
+            }
+            if(!exist)
+            {
+                // ROS_INFO("into !exist\n\n");
+                if(_paths.size()==5)
+                {
+                    // ROS_INFO("into size==5\n\n");
+                    _paths.at(id % 5).Xs.clear();
+                    _paths.at(id % 5).Ys.clear();
+                    _paths.at(id % 5).Clocks.clear();
+                }else
+                {
+                    _paths.push_back(pathC(-1));
+                }
+                // ROS_INFO("into !!!!\n\n");
+                _paths.at(id%5).id=id;
+                _paths.at(id%5).Xs.push_back(x);
+                _paths.at(id%5).Ys.push_back(y);
+                _paths.at(id%5).Clocks.push_back(clock());
+            }
+            cv::circle(_image, cv::Point(x, y), 0.2 * 100, track->getColor(), -1);
+
+            
+
+        }
+    }
+}
+
+
+
+=======
+>>>>>>> c955a22f39c9f3f32d0f2e41e9d16a8372178237
 Tracker::~Tracker()
 {
 }
