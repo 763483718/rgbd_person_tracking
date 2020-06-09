@@ -204,8 +204,6 @@ void print_paramenters()
         std::cout << "***DEBUGGING MODE***" << std::endl;
 }
 
-
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ground_detector_node", ros::init_options::AnonymousName);
