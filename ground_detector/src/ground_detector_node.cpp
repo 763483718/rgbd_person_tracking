@@ -28,8 +28,6 @@
  *
  */
 
-
-
 #include <opencv2/opencv.hpp>
 
 #include <boost/thread/thread.hpp>
@@ -95,7 +93,7 @@ double fontScale = 0.5;
 int thickness = 2;
 ros::Publisher rgbdepth_pub, boundingbox_pub;
 
-void groundfloor_callback(const sensor_msgs::ImageConstPtr& _depthImage, const sensor_msgs::ImageConstPtr& _rgbImage)
+void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const sensor_msgs::ImageConstPtr &_rgbImage)
 {
     cv_bridge::CvImageConstPtr rgbImage, depthRaw, depthImage;
 
@@ -103,7 +101,7 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr& _depthImage, const s
     {
         rgbImage = cv_bridge::toCvCopy(_rgbImage, sensor_msgs::image_encodings::BGR8);
     }
-    catch(cv_bridge::Exception &ex)
+    catch (cv_bridge::Exception &ex)
     {
         ROS_ERROR("cv_bridge RGB exception: %s", ex.what());
         return;
@@ -114,7 +112,7 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr& _depthImage, const s
         depthImage = cv_bridge::toCvShare(_depthImage, sensor_msgs::image_encodings::TYPE_32FC1);
         depthRaw = cv_bridge::toCvShare(_depthImage, sensor_msgs::image_encodings::TYPE_8UC1);
     }
-    catch(cv_bridge::Exception &ex)
+    catch (cv_bridge::Exception &ex)
     {
         ROS_ERROR("cv_bridge DEPTH exception: %s", ex.what());
         return;
@@ -133,38 +131,38 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr& _depthImage, const s
     segImg.image = *_rgbImage;
     clusters_sub.publish(segImg);
 
-    if(_debug)
+    if (_debug)
     {
-        const std::vector< boost::shared_ptr<Cluster> > &clusters = blob_extractor->clusters();
+        const std::vector<boost::shared_ptr<Cluster>> &clusters = blob_extractor->clusters();
         const std::vector<cv::Point> &ground = ground_detector->image_ground_points();
         cv::Mat rgb = rgbImage->image.clone();
 
         const std::vector<cv::Point> &candidates = ground_detector->candidate_points();
         cv::Point p;
-#pragma omp parallel for num_threads( omp_get_num_procs() * N_CORES ) shared(rgb)
-        for(uint i = 0; i < candidates.size(); ++i)
+#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
+        for (uint i = 0; i < candidates.size(); ++i)
         {
             p = candidates.at(i);
-            rgb.at<cv::Vec3b>(p)  = cv::Vec3b(0, 0, 255);
+            rgb.at<cv::Vec3b>(p) = cv::Vec3b(0, 0, 255);
         }
-#pragma omp parallel for num_threads( omp_get_num_procs() * N_CORES ) shared(rgb)
-        for(uint i = 0; i < ground.size(); ++i)
+#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
+        for (uint i = 0; i < ground.size(); ++i)
         {
             p = ground.at(i);
-            rgb.at<cv::Vec3b>(p)  = cv::Vec3b(255, 0, 0);
+            rgb.at<cv::Vec3b>(p) = cv::Vec3b(255, 0, 0);
         }
 
         cv::Mat bbox = rgbImage->image.clone();
         boost::shared_ptr<Cluster> cl;
         cv::Point point;
-#pragma omp parallel for num_threads( omp_get_num_procs() * N_CORES ) shared(bbox) private(text, cl, point)
-        for(uint i = 0; i < clusters.size(); ++i)
+#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(bbox) private(text, cl, point)
+        for (uint i = 0; i < clusters.size(); ++i)
         {
             cl = clusters.at(i);
             text.str("");
             text << "Distance: " << cl->getCenter().z;
-            point = cv::Point((cl->getBoundingBox().br().x + cl->getBoundingBox().x ) * 0.5 - 10, (cl->getBoundingBox().br().y + cl->getBoundingBox().y ) *0.5);
-            #pragma omp critical
+            point = cv::Point((cl->getBoundingBox().br().x + cl->getBoundingBox().x) * 0.5 - 10, (cl->getBoundingBox().br().y + cl->getBoundingBox().y) * 0.5);
+#pragma omp critical
             {
                 cv::rectangle(bbox, cl->getBoundingBox(), cv::Scalar(0, 255, 0), 2);
                 cv::putText(bbox, text.str(), point, fontFace, fontScale, cv::Scalar(0, 0, 255), thickness, 8);
@@ -172,19 +170,17 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr& _depthImage, const s
         }
 
         cv_bridge::CvImage rgbdepth, boundingbox;
-        rgbdepth.header   = rgbImage->header;
+        rgbdepth.header = rgbImage->header;
         rgbdepth.encoding = sensor_msgs::image_encodings::TYPE_8UC3;
-        rgbdepth.image    = rgb;
+        rgbdepth.image = rgb;
 
-        boundingbox.header   = rgbImage->header;
+        boundingbox.header = rgbImage->header;
         boundingbox.encoding = sensor_msgs::image_encodings::TYPE_8UC3;
-        boundingbox.image    = bbox;
+        boundingbox.image = bbox;
 
         rgbdepth_pub.publish(rgbdepth.toImageMsg());
         boundingbox_pub.publish(boundingbox.toImageMsg());
-
     }
-
 }
 
 void print_paramenters()
@@ -204,13 +200,11 @@ void print_paramenters()
     std::cout << "rgb_topic:\t" << _rgb_topic << std::endl;
     std::cout << "camera_info_topic:\t" << _camera_info_topic << std::endl;
 
-    if(_debug)
+    if (_debug)
         std::cout << "***DEBUGGING MODE***" << std::endl;
-
 }
 
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ground_detector_node", ros::init_options::AnonymousName);
     ros::NodeHandle nh("~");
@@ -219,26 +213,21 @@ int main(int argc, char** argv)
     nh.param("tx", _tx, double(0));
     nh.param("ty", _ty, double(1.5));
     nh.param("tz", _tz, double(0));
-    nh.param("groundThreshold", _groundThreshold, double(0.05)); //default 5cm
-    nh.param("voxel_size", _voxel_size, double(0.06)); //default 6 cm
-    nh.param("min_height", _min_height, double(1.0)); //default 1.3m
-    nh.param("max_height", _max_height, double(2.0)); //default 2m
-    nh.param("max_distance", _max_distance, double(5.)); //detection rate in meters
-    nh.param("up_side_down", _upSideDownYAxis, true); //if the Y-axis is upside down
-    nh.param("min_point_cluster", _min_points_cluster, int(100)); //min number of points to made a cluster
-    nh.param("max_point_cluster", _max_points_cluster, int(10000)); //min number of points to made a cluster
-    nh.param("min_point_subcluster", _min_points_subcluster, int(200)); //min number of points to made a cluster
+    nh.param("groundThreshold", _groundThreshold, double(0.05));          //default 5cm
+    nh.param("voxel_size", _voxel_size, double(0.06));                    //default 6 cm
+    nh.param("min_height", _min_height, double(1.0));                     //default 1.3m
+    nh.param("max_height", _max_height, double(2.0));                     //default 2m
+    nh.param("max_distance", _max_distance, double(5.));                  //detection rate in meters
+    nh.param("up_side_down", _upSideDownYAxis, true);                     //if the Y-axis is upside down
+    nh.param("min_point_cluster", _min_points_cluster, int(100));         //min number of points to made a cluster
+    nh.param("max_point_cluster", _max_points_cluster, int(10000));       //min number of points to made a cluster
+    nh.param("min_point_subcluster", _min_points_subcluster, int(200));   //min number of points to made a cluster
     nh.param("max_point_subcluster", _max_points_subcluster, int(10000)); //min number of points to made a cluster
     nh.param("debug", _debug, false);
 
     nh.param("depth_topic", _depth_topic, std::string("/camera/depth/image_raw"));
     nh.param("rgb_topic", _rgb_topic, std::string("/camera/rgb/image_raw"));
     nh.param("camera_info_topic", _camera_info_topic, std::string("/camera/depth/camera_info"));
-
-    nh.param("depth_topic", _depth_topic, std::string("/top_camera/depth/image_raw"));
-    nh.param("rgb_topic", _rgb_topic, std::string("/top_camera/rgb/image_raw"));
-    nh.param("camera_info_topic", _camera_info_topic, std::string("/top_camera/depth/camera_info"));
-
 
     print_paramenters();
 
@@ -251,7 +240,7 @@ int main(int argc, char** argv)
         ground_detector->setDebug(_debug);
         ROS_INFO("GOT CAMERA INFO");
     }
-    catch(std::exception ex)
+    catch (std::exception ex)
     {
         ROS_WARN("NO CAMERA INFO");
     }
@@ -265,7 +254,6 @@ int main(int argc, char** argv)
     message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, _depth_topic, 1);
     message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, _rgb_topic, 1);
 
-
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> syncPolicy;
     message_filters::Synchronizer<syncPolicy> sync(syncPolicy(10), depth_sub, rgb_sub);
 
@@ -273,12 +261,11 @@ int main(int argc, char** argv)
 
     clusters_sub = nh.advertise<people_msgs::SegmentedImage>("/rgbdsegmented", 1);
 
-    if(_debug)
+    if (_debug)
     {
         rgbdepth_pub = nh.advertise<sensor_msgs::Image>("/rgbdepth", 1);
         boundingbox_pub = nh.advertise<sensor_msgs::Image>("/boundingbox", 1);
     }
 
     ros::spin();
-
 }
