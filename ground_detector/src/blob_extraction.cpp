@@ -73,14 +73,14 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr BlobExtraction::cloud_preprocessing(const st
 }
 
 
-void BlobExtraction::process(const std::vector<cv::Point3f> &_cloud, const std::vector<cv::Point3f>& ground3D)
+void BlobExtraction::process(const std::vector<cv::Point3f> &_cloud, const std::vector<cv::Point3f>& ground3D)  
 {
     if(_cloud.size() > 0)
     {
         m_clusters.clear();
         m_msg_clusters.clusters.clear();
-        m_cloud = cloud_preprocessing(_cloud);
-        ground(ground3D);
+        m_cloud = cloud_preprocessing(_cloud);  //预处理指：对非地面的点云进行下采样操作，减少计算量。
+        // ground(ground3D);       //暂时不知道什么用 
 
         // Euclidean Clustering:
         std::vector<pcl::PointIndices> cluster_indices;

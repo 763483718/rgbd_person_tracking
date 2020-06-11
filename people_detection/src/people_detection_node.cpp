@@ -40,6 +40,7 @@
 
 //PEOPLE DETECTOR
 #include "fpdw_detector.h"
+
 #ifdef HOG
 #include "hogpeopledetector.h"
 #endif
@@ -88,6 +89,7 @@ void people_detection_callback(const people_msgs::SegmentedImageConstPtr &_candi
     std::vector<cv::Rect> bboxes, cts, scaledBBoxes;
     cv::Rect r;
 #ifndef HOG
+    ROS_INFO("into HOG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     try
     {
         cv::resize(image, resized, cv::Size(image.cols/_imageScalingFactor, image.rows/_imageScalingFactor));
@@ -100,19 +102,20 @@ void people_detection_callback(const people_msgs::SegmentedImageConstPtr &_candi
         exit(-1);
     }
 
-    for(const auto &j : bboxes)
+    for(const auto &j : bboxes) //显示FPDW行人检测结果 红色框
     {
         r = cv::Rect(j.tl().x * _imageScalingFactor, j.tl().y * _imageScalingFactor, j.width * _imageScalingFactor, j.height * _imageScalingFactor);
         scaledBBoxes.push_back(r);
         cv::rectangle(image, r, cv::Scalar(255, 0, 0), 2);
     }
 
-    for(const auto &i : candidates.clusters.clusters)
+    for(const auto &i : candidates.clusters.clusters)//显示点云分割结果 绿色框
     {
         r = cv::Rect(i.boundingBox.topLeft.x, i.boundingBox.topLeft.y, i.boundingBox.width, i.boundingBox.height);
         cv::rectangle(image, r, cv::Scalar(0, 255, 0), 2);
         cts.push_back(r);
     }
+
     std::vector<cv::Rect> people;
     std::vector<std::pair<int, int> > indices;
     PatchMerging::instance()->process(scaledBBoxes, cts, people, indices);
@@ -129,7 +132,7 @@ void people_detection_callback(const people_msgs::SegmentedImageConstPtr &_candi
         _msg.boundingBox.width = r.width;
         _msg.boundingBox.height = r.height;
         selected_people.clusters.clusters.push_back(_msg);
-        cv::rectangle(image, r, cv::Scalar(0, 0, 255), 2);
+        cv::rectangle(image, r, cv::Scalar(0, 0, 255), 2); //蓝色
     }
 
     people_detected.publish(selected_people);
@@ -180,7 +183,6 @@ int main(int argc, char **argv)
     nh.param("confidence", _confidence, double(60.));
     nh.param("image_scaling_factor", _imageScalingFactor, double(1.5));
 
-    //set the detectorJune 12
     detector = std::shared_ptr<fpdw::detector::FPDWDetector>(new fpdw::detector::FPDWDetector(_dataset_file, _confidence));
 #ifdef HOG
     hog_detector = std::shared_ptr<HogPeopleDetector>(new HogPeopleDetector(0.5, cv::Size(4, 4), cv::Size(32, 32), 1.2, 2, false));

@@ -106,12 +106,12 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const s
         ROS_ERROR("cv_bridge RGB exception: %s", ex.what());
         return;
     }
-
     try
     {
         depthImage = cv_bridge::toCvShare(_depthImage, sensor_msgs::image_encodings::TYPE_32FC1);
         depthRaw = cv_bridge::toCvShare(_depthImage, sensor_msgs::image_encodings::TYPE_8UC1);
     }
+    
     catch (cv_bridge::Exception &ex)
     {
         ROS_ERROR("cv_bridge DEPTH exception: %s", ex.what());
@@ -119,7 +119,7 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const s
     }
 
     cv::Mat nonZeroCoordinates;
-    cv::findNonZero(depthRaw->image, nonZeroCoordinates);
+    cv::findNonZero(depthRaw->image, nonZeroCoordinates);  //find the pixels with non-zero values
 
     ground_detector->process(depthImage->image, nonZeroCoordinates);
     const std::vector<cv::Point3f> &no_ground = ground_detector->no_ground();
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "ground_detector_node", ros::init_options::AnonymousName);
     ros::NodeHandle nh("~");
 
-    nh.param("theta", _theta, double(12));
+    nh.param("theta", _theta, double(12));                                //camera position
     nh.param("tx", _tx, double(0));
     nh.param("ty", _ty, double(1.5));
     nh.param("tz", _tz, double(0));

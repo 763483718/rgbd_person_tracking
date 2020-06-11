@@ -36,7 +36,7 @@ GroundDetection::GroundDetection(const sensor_msgs::CameraInfo &_camInfo, const 
                                  const float &_groundThreshold, const float &_max_height, const float &_max_distance,  const bool &_upsidedown)
     : m_theta(_theta), m_tx(_tx), m_ty(_ty), m_groundThreshold(_groundThreshold), m_max_height(_max_height), m_max_distance(_max_distance)
 {
-    m_theta *= (M_PI / 180);
+    m_theta *= (M_PI / 180);  //转化为弧度
     m_fx = _camInfo.K.at(0);
     m_fy = _camInfo.K.at(4);
     m_cx = _camInfo.K.at(2);
