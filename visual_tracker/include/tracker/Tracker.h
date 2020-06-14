@@ -33,7 +33,7 @@
 #include <opencv2/opencv.hpp>
 #include <adaboost/StrongClassifier.hpp>
 #include <adaboost/KalmanWeakClassifier.hpp>
-#include <adaboost/ColorFeature.hpp>
+// #include <adaboost/ColorFeature.hpp>
 #include <adaboost/ColorOrbFeature.hpp>
 #include <tracker/Track.h>
 #include <omp.h>
@@ -120,7 +120,7 @@ namespace tracker
 
     private:
         /**
-             * @brief calcColorHistogram
+             * @brief calcColorHistogram 计算颜色的梯度直方图
              * @param image
              * @param blobMask
              * @param bins
@@ -144,7 +144,7 @@ namespace tracker
                                       std::vector<cv::Mat> &_negative_feature_histograms, const std::vector<detection_struct> &_detections, const int &det);
 
         static void calcFeatures(const cv::Rect &_detection, cv::Mat &_histrogram, const cv::Mat &_descriptors,
-                                 const cv::Mat &_keyPointImage, const cv::Mat &_keyPointMask);
+                                 const cv::Mat &_keyPointImage, const cv::Mat &_keyPointMask);   //计算特征点特征
 
         void computeDetectionHistograms();
         void train(const int &_start, const bool &_init);

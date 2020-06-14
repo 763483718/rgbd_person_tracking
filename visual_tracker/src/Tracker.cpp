@@ -111,10 +111,10 @@ void Tracker::track(const std::vector<detection_struct> &_detections, const cv::
     }
     else
     {
-        /*1*/ computeDetectionHistograms(); //Compute the histrograms and the masks
-        /*2*/ associate();                  //Associate the detections with the classifiers
-        /*4*/ checkOcclusions();            //Check occluded tracks
-        /*3*/ update();                     //Update old classifiers
+        /*1*/ computeDetectionHistograms(); //Compute the histrograms and the masks 计算特征
+        /*2*/ associate();                  //Associate the detections with the classifiers 
+        /*4*/ checkOcclusions();            //Check occluded tracks  检查被遮挡
+        /*3*/ update();                     //Update old classifiers 
         /*5*/ deleteTracks();               //Delete unused tracks
         /*6*/ createNewClassifiers();       //Create the classifiers for the new tracks
         int start = strongClassifiers_.size() - newTracks.size();

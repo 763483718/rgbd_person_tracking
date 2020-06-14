@@ -82,8 +82,8 @@ void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
     {
         tracker::detection_struct d;
         d.bbox = cv::Rect(det.boundingBox.topLeft.x / _imageScalingFactor, det.boundingBox.topLeft.y / _imageScalingFactor,
-                          det.boundingBox.width / _imageScalingFactor, det.boundingBox.height / _imageScalingFactor);
-        d.point3D = cv::Point3d(det.center.x, det.center.y, det.center.z);
+                          det.boundingBox.width / _imageScalingFactor, det.boundingBox.height / _imageScalingFactor);//图像坐标
+        d.point3D = cv::Point3d(det.center.x, det.center.y, det.center.z);//三维坐标
         rects.push_back(d);
     }
 
