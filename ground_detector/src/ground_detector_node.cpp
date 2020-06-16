@@ -133,7 +133,7 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const s
 
     if (_debug)
     {
-        const std::vector<boost::shared_ptr<Cluster>> &clusters = blob_extractor->clusters();
+        const std::vector<boost::shared_ptr<Cluster> > &clusters = blob_extractor->clusters();
         const std::vector<cv::Point> &ground = ground_detector->image_ground_points();
         cv::Mat rgb = rgbImage->image.clone();
 
