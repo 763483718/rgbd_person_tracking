@@ -89,7 +89,7 @@ void people_detection_callback(const people_msgs::SegmentedImageConstPtr &_candi
     std::vector<cv::Rect> bboxes, cts, scaledBBoxes;
     cv::Rect r;
 #ifndef HOG
-    ROS_INFO("into HOG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
     try
     {
         cv::resize(image, resized, cv::Size(image.cols/_imageScalingFactor, image.rows/_imageScalingFactor));
@@ -102,7 +102,7 @@ void people_detection_callback(const people_msgs::SegmentedImageConstPtr &_candi
         exit(-1);
     }
 
-    for(const auto &j : bboxes) //显示FPDW行人检测结果 红色框
+    for(const auto &j : bboxes) //显示FPDW行人检测结果 蓝色框
     {
         r = cv::Rect(j.tl().x * _imageScalingFactor, j.tl().y * _imageScalingFactor, j.width * _imageScalingFactor, j.height * _imageScalingFactor);
         scaledBBoxes.push_back(r);
@@ -132,7 +132,7 @@ void people_detection_callback(const people_msgs::SegmentedImageConstPtr &_candi
         _msg.boundingBox.width = r.width;
         _msg.boundingBox.height = r.height;
         selected_people.clusters.clusters.push_back(_msg);
-        cv::rectangle(image, r, cv::Scalar(0, 0, 255), 2); //蓝色
+        cv::rectangle(image, r, cv::Scalar(0, 0, 255), 2); //red
     }
 
     people_detected.publish(selected_people);

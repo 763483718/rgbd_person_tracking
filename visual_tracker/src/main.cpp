@@ -69,7 +69,7 @@ void people_tracking(const people_msgs::SegmentedImageConstPtr &_detections)
         rgbImage = cv_bridge::toCvCopy(detections.image, sensor_msgs::image_encodings::BGR8);
     }
     catch (cv_bridge::Exception &ex)
-    {
+    { 
         ROS_ERROR("cv_bridge RGB exception: %s", ex.what());
         return;
     }

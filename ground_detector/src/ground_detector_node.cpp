@@ -93,6 +93,18 @@ double fontScale = 0.5;
 int thickness = 2;
 ros::Publisher rgbdepth_pub, boundingbox_pub;
 
+// bool isInside(cv::Point point, cv::Rect r)
+// {
+//     if(point.x>r.x&&point.x<r.x+r.width)
+//     {
+//         if(point.y>r.y&&point.y<r.y+r.height)
+//         {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
+
 void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const sensor_msgs::ImageConstPtr &_rgbImage)
 {
     cv_bridge::CvImageConstPtr rgbImage, depthRaw, depthImage;
@@ -139,22 +151,14 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const s
 
         const std::vector<cv::Point> &candidates = ground_detector->candidate_points();
         cv::Point p;
-#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
-        for (uint i = 0; i < candidates.size(); ++i)
-        {
-            p = candidates.at(i);
-            rgb.at<cv::Vec3b>(p) = cv::Vec3b(0, 0, 255);
-        }
-#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
-        for (uint i = 0; i < ground.size(); ++i)
-        {
-            p = ground.at(i);
-            rgb.at<cv::Vec3b>(p) = cv::Vec3b(255, 0, 0);
-        }
+
 
         cv::Mat bbox = rgbImage->image.clone();
         boost::shared_ptr<Cluster> cl;
         cv::Point point;
+        // std::vector<cv::Rect> boxes;
+        // std::vector<cv::Scalar> scalars;
+        // cv::RNG rng;
 #pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(bbox) private(text, cl, point)
         for (uint i = 0; i < clusters.size(); ++i)
         {
@@ -166,8 +170,47 @@ void groundfloor_callback(const sensor_msgs::ImageConstPtr &_depthImage, const s
             {
                 cv::rectangle(bbox, cl->getBoundingBox(), cv::Scalar(0, 255, 0), 2);
                 cv::putText(bbox, text.str(), point, fontFace, fontScale, cv::Scalar(0, 0, 255), thickness, 8);
+                // boxes.push_back(cl->getBoundingBox());
+                // scalars.push_back(cv::Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
             }
         }
+
+        
+// #pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
+//         for (uint i = 0; i < candidates.size(); ++i)
+//         {
+//             p = candidates.at(i);
+//             bool t = true;
+//             for (int j = 0; j < boxes.size(); j++)
+//             {
+//                 if(isInside(p, boxes[j]))
+//                 {
+//                     rgb.at<cv::Vec3b>(p) = cv::Vec3b(scalars[j][0], scalars[j][1], scalars[j][2]);
+//                     t = false;
+//                     break;
+//                 }
+//                 if(t)
+//                 {
+//                     rgb.at<cv::Vec3b>(p) = cv::Vec3b(0, 0, 255); 
+//                 }
+//             }
+//         }
+#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
+        for (uint i = 0; i < candidates.size(); ++i)
+        {
+            p = candidates.at(i);
+            rgb.at<cv::Vec3b>(p) = cv::Vec3b(0, 0, 255);
+        }
+#pragma omp parallel for num_threads(omp_get_num_procs() * N_CORES) shared(rgb)
+        for (uint i = 0; i < ground.size(); ++i)
+        {
+            p = ground.at(i);
+            rgb.at<cv::Vec3b>(p) = cv::Vec3b(255, 0, 0); 
+        }
+
+        cv::imshow("rgb", rgb);
+        cv::imshow("bbox", bbox);
+        cv::waitKey(1);
 
         cv_bridge::CvImage rgbdepth, boundingbox;
         rgbdepth.header = rgbImage->header;

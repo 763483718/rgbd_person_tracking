@@ -781,6 +781,11 @@ void Tracker::generateMessage(people_msgs::Tracks &_msg, const double &scaling_f
 
 void Tracker::generateTopview(cv::Mat &_image, std::vector<pathC> &_paths)
 {
+    // cv::Mat history(500, 400, CV_8UC4);
+    // cv::Mat line(500, 400, CV_8UC4);
+    // history.setTo(cv::Scalar(255, 255, 255));
+    // line.setTo(cv::Scalar(255, 255, 255));
+
     int id;
     bool exist = false;
     for (const auto &track : tracks_)
@@ -791,10 +796,10 @@ void Tracker::generateTopview(cv::Mat &_image, std::vector<pathC> &_paths)
             const cv::Point3d &point3D = track->get3DPoint();
             double x = 200 + point3D.x * 40;
             double y = 500 - point3D.z * 100;
-            ROS_INFO("x:%f,\ty:%f", x, y);
+            // ROS_INFO("x:%f,\ty:%f", x, y);
 
             id = track->getId();
-            // ROS_INFO("id:%d", id);
+
             for (auto &p : _paths)
             {
                 if (p.id == id)
@@ -807,11 +812,14 @@ void Tracker::generateTopview(cv::Mat &_image, std::vector<pathC> &_paths)
                     if (p.Xs.size() > 2)
                         cv::line(_image, cv::Point(x, y), p.getPoint(), track->getColor(), 2);
 
-                    for (int i = 0; i < p.Xs.size(); i++)
+                    for (int i = 0; i < p.Xs.size(); i++)         
                     {
                         cv::circle(_image, cv::Point(p.Xs[i], p.Ys[i]), 8, track->getColor(), -1);
+                        // cv::circle(history, cv::Point(p.Xs[i], p.Ys[i]), 8, track->getColor(), -1);
+                        // cv::circle(line, cv::Point(p.Xs[i], p.Ys[i]), 8, track->getColor(), -1);
                     }
                     // cv::line(_image, cv::Point(p.predictX(10), 10), cv::Point(p.predictX(400), 400), cv::Scalar(0, 0, 0), 2);
+                    // cv::line(line, cv::Point(p.predictX(10), 10), cv::Point(p.predictX(400), 400), cv::Scalar(0, 0, 0), 2);
                 }
             }
             if (!exist)
@@ -837,6 +845,9 @@ void Tracker::generateTopview(cv::Mat &_image, std::vector<pathC> &_paths)
             cv::circle(_image, cv::Point(x, y), 0.2 * 100, track->getColor(), -1);
         }
     }
+    // cv::imshow("history", history);
+    // cv::imshow("line", line);
+    // cv::waitKey(1);
 }
 
 Tracker::~Tracker()
